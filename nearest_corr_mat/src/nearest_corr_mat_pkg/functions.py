@@ -19,11 +19,11 @@ def nearest_corr(mat, method='dual_bfgs', err_max=None, ite_max=None, **kwargs):
     if method == 'dual_grad':
         res = proj_ingham(mat, err_max, ite_max)
     elif method == 'dual_bfgs':
-        res = proj_ingham(mat, err_max, ite_max)
+        res = bfgs(mat, err_max, ite_max)
     elif method == 'dual_l_bfgs':
-        res = proj_ingham(mat, err_max, ite_max, **kwargs)  # kwargs memory
+        res = l_bfgs(mat, err_max, ite_max, **kwargs)  # memory
     elif method == 'dual_newton':
-        res = proj_ingham(mat, err_max, ite_max)
+        res = proj_qi_sun(mat, err_max, ite_max)
     return res
 
 
@@ -172,7 +172,7 @@ def build_newton_mat(arg_dual):
 
     alpha = np.where(diag > 0)[0]
     gamma = np.where(diag < 0)[0]
-    beta = list(set(range(dim)) - (set(alpha) | set(gamma)))
+    beta = set(range(dim)) - (set(alpha) | set(gamma))
 
     newton_mat = np.zeros((dim, dim))
     for ind_1, ind_2 in product(alpha, repeat=2):
