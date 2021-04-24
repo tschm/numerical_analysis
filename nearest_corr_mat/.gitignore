@@ -4,4 +4,4 @@ __pycache__
 *.out
 *.aux
 *.ipynb
-!tests/*.ipynb
+!src/nearest_corr_mat_pkg/tests/*.ipynb

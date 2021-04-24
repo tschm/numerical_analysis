@@ -1,0 +1,3 @@
+include README.tex
+include README.pdf
+include src/nearest_corr_mat_pkg/tests/performances.ipynb
