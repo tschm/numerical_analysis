@@ -1,0 +1,7 @@
+src/*.egg-info
+__pycache__
+*~
+*.out
+*.aux
+*.ipynb
+!tests/*.ipynb
