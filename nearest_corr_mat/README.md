@@ -23,8 +23,8 @@ These algorihms were tested on random 100 x 100 matrices, for err_max = 1e-6 (*c
 | algo     | time  | n_iterations |
 |----------|-------|--------------|
 | grad     | 20 s  | 1500         |
-| admm_v0  | 8 s   | 500          |
-| admm_v1  | 8 s   | 500          |
+| admm_v0  | 10 s  | 500          |
+| admm_v1  | 10 s  | 500          |
 | bfgs     | 1 s   | 100          |
 | l-bfgs   | 2 s   | 100          |
 | newton   | 60 s  | 100          |
