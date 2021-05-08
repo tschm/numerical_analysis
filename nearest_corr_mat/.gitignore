@@ -1,7 +1,8 @@
-src/*.egg-info
+*.egg-info
 __pycache__
 *~
 *.out
 *.aux
 *.ipynb
-!src/nearest_corr_mat_pkg/tests/*.ipynb
+#*#
+!nearest_correlation_matrix/tests/*.ipynb

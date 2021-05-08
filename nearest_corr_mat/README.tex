@@ -11,7 +11,7 @@
 \begin{document}
 
 \begin{center}
-{\LARGE \textbf{nearest\_corr\_mat\_pkg}}
+{\LARGE \textbf{nearest\_correlation\_matrix}}
 \end{center}
 
 \setlength\parindent{0pt}
@@ -24,84 +24,87 @@
 
 
 \begin{abstract}
-This package is intended for a fast computation of the nearest correlation matrix, in the Euclidian sense.
+This package provides fast computations of the nearest correlation matrix, in the Euclidian setting.
 \end{abstract}
 
 \section{Problem and its dual}
 
 A correlation matrix is a real symmetric positive semidefinite matrix with unit diagonal.
-The problem is to find the closest correlation matrix to a given positive semidefinite matrix, for the Frobenius norm.
+The problem is to find the closest correlation matrix to a given positive semidefinite matrix, for the Frobenius norm. Five algorithms are implemented, to the best of my knowledge, the second one is an original application of the ADMM to this problem.
 
 \medskip
 
 With symbols, the problem is:
-\[ \textrm{min.} \; \frac12 \norm{G - X}^2 \;\;\; \text{s.t.} \; \mathrm{diag}(X) = 1, X \in S_n^+, \]
+\[ \textrm{min.}_X \; \frac12 \norm{G - X}^2 \;\;\; \text{s.t.} \; \mathrm{diag}(X) = 1, X \in S_n^+, \]
 where $S_n^+$ (resp. $S_n$) is the cone (resp. space) of real positive definite matrices (resp. real symmetric matrices), $G$ is a given positive semidefinite matrix, $\norm{G}$ is the Frobenius norm, $\mathrm{diag}: S_n \to \R^n$ is the linear operator returning the diagonal vector of a matrix, $1$ is the vector of all ones in $\R^n$.
 
 \medskip
 
-The functional is convex and smooth. The constrained problem has a unique solution. The affine space $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ and the cone $S_n^+$ are convex sets of $S_n$.
+The functional is convex and smooth. The constrained problem has a unique solution. The affine space $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ and the cone $S_n^+$ are convex sets of $S_n$. These properties allow this (primal) minimization problem to be tackled directly, as shown by the first two algorithms. The dual minimization problem leads to more efficient algorithms, as shown by the last three algorithms.
 
 \bigskip
 
-The dual formulation considered here is:
-\[\textrm{min.} \; \theta(y) := \frac12 \norm{(G + \mathrm{Diag}(y))_+} - 1^T y, \]
+The dual problem is:
+\[\textrm{min.}_{y\in\R^n} \; \theta(y) := \frac12 \norm{(G + \mathrm{Diag}(y))_+}^2 - 1^T y, \]
 where $\mathrm{Diag}: \R^n \to S_n$ is the adjoint of $\mathrm{diag}$, $+: S_n \to S_n^+$ is the projection onto $S_n^+$.
-Its gradient:
+The objective of this minimization problem is used only when a line search is performed.
+The most important quantity is its gradient:
 \[
-\nabla \theta(y) := \mathrm{diag}(G + \mathrm{Diag}(y)_+) - 1,
+\nabla \theta(y) = \mathrm{diag}(G + \mathrm{Diag}(y)_+) - 1.
 \]
-is the most important function in this problem, as it is enough to find a zero of the gradient, say $y^*$, to solve the primal problem, thanks to the formula:
+It is enough to find a zero of the gradient, say $y^*$, to solve the primal problem, thanks to the formula:
 \[ x^* := G + \mathrm{Diag}(y^*)_+. \]
 The dual problem is convex, unconstrained, and $\nabla \theta$ is strongly semismooth (but not differentiable).
 
 \medskip
 
-The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically.
+The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically. The 3rd and 4th algorithms are quasi-Newton methods for this dual problem, while the last is a Newton method (gradient method for the gradient).
 
 \medskip
 
-Although the algorithms below were not published recently, I am not aware of any freely accessible implementation, apart from the Python module Statsmodels which implements the simplest algorithm.
+Although the algorithms were not published recently, I am not aware of any freely accessible implementation,
+apart from the Python module Statsmodels providing the first algorithm.
 
-\section{Four algorithms implemented}
+\section{Five algorithms implemented}
 
 As the problem is constrained in the intersection of two convex sets, Von Neumann alternative projection can be used, \emph{cf.} \texttt{performances.ipynb}. This algorithm may converge to a sub optimal solution (as $S_n^+$ is not a vector space). Dykstra's projection does not converge at all, \emph{cf.} \texttt{performances.ipynb}.
 
 \medskip
 
-Four methods, are, either indirectly or directly, based on the dual problem, and are implemented in the main function \texttt{nearest\_corr}.
+Five algorithms are implemented in the main function \texttt{nearest\_corr}. The first two are based on the primal problem, while the last three are (directly) based on the dual problem.
 \begin{enumerate}
-\item The algorithm 'grad' is based on \href{https://www.maths.manchester.ac.uk/~higham/narep/narep369.pdf}{Higham, 2002}. It is a modified Dykstra's projection algorithm, adapted to find a point in the intersection of an affine subspace and convex subset. As noted in \href{https://hal.inria.fr/inria-00072409v2/document}{Malick, 2004}, in a general way, this algorithm is exactly a gradient descent for the dual problem.
+\item The algorithm 'grad' is based on \href{https://www.maths.manchester.ac.uk/~higham/narep/narep369.pdf}{Higham, 2002}.
+This algorithm is a modified Dykstra's projection algorithm, adapted to find a point in the intersection of an affine subspace and convex subset. As noted in \href{https://hal.inria.fr/inria-00072409v2/document}{Malick, 2004}, in a general way, this algorithm is exactly a gradient descent for the dual problem. This point is checked in the tests, \emph{cf.} \texttt{test.py}.
+\item The algorithms 'admm\_v0' and 'admm\_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections on $S_n^+$ and $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ are performed. The two algorithms are different but have similar performances.
 \item The algorithm 'bfgs' is the BFGS algorithm applied to the convex, differentiable, unconstrained dual problem, as suggested in Malick. The implementations are based on \href{https://link.springer.com/book/10.1007/978-3-540-35447-5}{BGLS textbook}.
 \item The algorithm 'l\_bfgs' is the limited BFGS algorithm applied to the dual problem, as suggested in Malick. The implementations are based on the same book.
-\item The algorithm 'newton' is a Newton's method for the dual problem. It uses the strong semismoothness of $\nabla \theta$ and an explicit construction of elements of its Clarke Jacobian. It has been developed in \href{http://www.personal.soton.ac.uk/hdqi/REPORTS/simax_06.pdf}{Qi, Sun, 2006}.
+\item The algorithm 'newton' is a Newton's method for the dual problem. It relies on an explicit computation of an element of the Clarke Jacobian of $\nabla \theta$. It has been developed in \href{http://www.personal.soton.ac.uk/hdqi/REPORTS/simax_06.pdf}{Qi, Sun, 2006}.
 \end{enumerate}
 
 \section{Performances}
 
-On random $100 \times 100$ matrices (\emph{cf.} \texttt{test.py}), for $err\_max =10^{-6}$,  on a given machine, the algorithms have the following performances.
+These algorihms were tested on random $100 \times 100$ matrices, for $err\_max =10^{-6}$ (\emph{cf.} \texttt{performances.ipynb}), which should be enough for a large range of pratical use cases. The ranking of the algorithms' speeds may be significantly different for other ranges of parameters, \emph{cf.} table in Qi, Sun. On a given machine, the algorithms have the following performances.
 
 \medskip
 
 \begin{center}
 \begin{tabular}{lll}
- algo   & time  & n\_iterations \\ \hline
- grad   & 20 s  & 1500         \\
- bfgs   & 2 s   & 100          \\
- l-bfgs & 2 s   & 100          \\
- newton & 60 s  & 100          
+ algo     & time  & n\_iterations \\ \hline
+ grad     & 20 s  & 1500          \\
+ admm\_v0 & 8 s   & 500           \\
+ admm\_v1 & 8 s   & 500           \\
+ bfgs     & 1 s   & 100           \\
+ l-bfgs   & 2 s   & 100           \\
+ newton   & 60 s  & 100           \\
 \end{tabular}
 \end{center}
 
 \medskip
 
-The (complicated, double-loop) construction of the Newton's matrix for 'newton' algorithm may be responsible for this algorithm to be slowest, for this set of parameters. For higher dimension problems ($1000 \times 1000$), the method 'l\_bfgs' seems to be the fastest (when 'memory' remains unchanged).
+For all the algorithms, the convergence seem to be linear. This is expected for the modified Dysktra's projection and the ADMMs. Quasi-Newton methods converge superlinearly when the functional is smooth and a Wolfe line search is performed, for instance. The algorithms 'bfgs', 'l\_bfgs' may converge only linearly because the gradient of the functional is only semismooth. It is surprising for the Newton's method to have only a linear convergence, as it is proved to be quadratically convergent. The quadratic convergence may be observed for other ranges of parameters; Qi, Sun test their algorithm in higher dimension ($1000 \times 1000$) and for lower $err\_max$. 
 
 \medskip
 
-For none of the method a line search is performed because a Wolfe (or a even simpler) line search considerably slows down all the methods and setting the step to 1 is a simple and good enough (this is consistent with a remark in Qi, Sun and with the initial value for quasi-Newton methods; experimentaly, Wolfe condition is often satisfied for value 1). For 'newton', for the same speed reason, the conjugate gradient is not used; Numpy's solve is used instead, and the direction checking is not performed.
+For none of the (dual) algorithms a line search is performed because a Wolfe (or an even simpler) line search considerably slows down all the (dual) algorithms and setting the step to 1 is simple and good enough (this is consistent with a remark in Qi, Sun and with the initial value for quasi-Newton methods; experimentaly, Wolfe condition is often satisfied for the value 1). For 'newton', for the same speed reason, the conjugate gradient is not used directly (as Numpy's solve is a wrapper of a fast Fortran algorithm and no faster conjugate gradient is available); the direction checking is not performed. The resolution of the Newton's linear system is probably responsible for 'newton' algorithm to be slowest, for this set of parameters.
 
-\medskip
-
-For all the methods, for $err\_max = 10^{-6}$, the convergence seem to be linear. This is expected for the modified Dysktra's projection. Quasi-Newton methods converge superlinearly when the functional is smooth and a Wolfe line search is performed, for instance. The algorithms 'bfgs', 'l\_bfgs' seem to converge only linearly, maybe because the gradient of the functional is only semismooth. It is surprising for the Newton's method to have only a linear convergence, because it is proved to be quadratically convergent. The quadratic convergence may be observed for other ranges of parameters, as noted in Qi, Sun.
 \end{document}
