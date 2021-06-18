@@ -11,7 +11,7 @@
 \begin{document}
 
 \begin{center}
-{\LARGE \textbf{near\_corr\_mat}}
+{\LARGE \textbf{nearest\_correlation\_matrix}}
 \end{center}
 
 \setlength\parindent{0pt}
@@ -24,13 +24,13 @@
 
 
 \begin{abstract}
-This package provides fast computations of the nearest correlation matrix, in the Euclidian setting.
+The package \texttt{nearcorrmat} provides fast computations of the nearest correlation matrix, in the Euclidian setting.
 \end{abstract}
 
 \section{Problem and its dual}
 
 A correlation matrix is a real symmetric positive semidefinite matrix with unit diagonal.
-The problem is to find the closest correlation matrix to a given positive semidefinite matrix, for the Frobenius norm. Five algorithms are implemented, to the best of my knowledge, the second one is an original application of the ADMM to this problem.
+The problem is to find the closest correlation matrix to a given positive semidefinite matrix, for the Frobenius norm. Five algorithms are implemented.
 
 \medskip
 
@@ -58,12 +58,12 @@ The dual problem is convex, unconstrained, and $\nabla \theta$ is strongly semis
 
 \medskip
 
-The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically. The 3rd and 4th algorithms are quasi-Newton methods for this dual problem, while the last is a Newton method (gradient method for the gradient).
+The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically. The firsst algorithm is a gradient descent for this dual problem, the third and fourth algorithms are quasi-Newton methods, while the fifth is a Newton method.
 
 \medskip
 
 Although the algorithms were not published recently, I am not aware of any freely accessible implementation,
-apart from the Python module Statsmodels providing the first algorithm.
+apart from the Python module \texttt{Statsmodels} implemeting the first algorithm.
 
 \section{Five algorithms implemented}
 
@@ -71,12 +71,12 @@ As the problem is constrained in the intersection of two convex sets, Von Neuman
 
 \medskip
 
-Five algorithms are implemented in the main function \texttt{nearest\_corr}. The first two are based on the primal problem, while the last three are (directly) based on the dual problem.
+Five algorithms are implemented in the main function \texttt{nearest\_corr}. The first two are based on the primal problem, while the last three are directly based on the dual problem.
 \begin{enumerate}
 \item The algorithm 'grad' is based on \href{https://www.maths.manchester.ac.uk/~higham/narep/narep369.pdf}{Higham, 2002}.
-This algorithm is a modified Dykstra's projection algorithm, adapted to find a point in the intersection of an affine subspace and convex subset. As noted in \href{https://hal.inria.fr/inria-00072409v2/document}{Malick, 2004}, in a general way, this algorithm is exactly a gradient descent for the dual problem. This point is checked in the tests, \emph{cf.} \texttt{test.py}.
-\item The algorithms 'admm\_v0' and 'admm\_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections on $S_n^+$ and $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ are performed. The two algorithms are different but have similar performances.
-\item The algorithm 'bfgs' is the BFGS algorithm applied to the convex, differentiable, unconstrained dual problem, as suggested in Malick. The implementations are based on \href{https://link.springer.com/book/10.1007/978-3-540-35447-5}{BGLS textbook}.
+This algorithm is a modified Dykstra's projection algorithm, adapted to find a point in the intersection of an affine subspace and convex subset. As noted in \href{https://hal.inria.fr/inria-00072409v2/document}{Malick, 2004}, this algorithm is exactly a gradient descent for the dual problem. This point is checked in the tests, \emph{cf.} \texttt{test.py}.
+\item The algorithms 'admm\_v0' and 'admm\_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections on $S_n^+$ and $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ are performed. The two algorithms are different but have similar performances. To the best of my knowledge, this is an original application of the ADMM to this problem.
+\item The algorithm 'bfgs' is the BFGS algorithm applied to the convex, differentiable, unconstrained dual problem, \emph{cf.} Malick. The implementations are based on \href{https://link.springer.com/book/10.1007/978-3-540-35447-5}{BGLS textbook}.
 \item The algorithm 'l\_bfgs' is the limited BFGS algorithm applied to the dual problem, as suggested in Malick. The implementations are based on the same book.
 \item The algorithm 'newton' is a Newton's method for the dual problem. It relies on an explicit computation of an element of the Clarke Jacobian of $\nabla \theta$. It has been developed in \href{http://www.personal.soton.ac.uk/hdqi/REPORTS/simax_06.pdf}{Qi, Sun, 2006}.
 \end{enumerate}
@@ -91,8 +91,8 @@ These algorihms were tested on random $100 \times 100$ matrices, for $err\_max =
 \begin{tabular}{lll}
  algo     & time  & n\_iterations \\ \hline
  grad     & 20 s  & 1500          \\
- admm\_v0 & 10 s  & 500           \\
- admm\_v1 & 10 s  & 500           \\
+ admm\_v0 & 8 s   & 500           \\
+ admm\_v1 & 8 s   & 500           \\
  bfgs     & 1 s   & 100           \\
  l-bfgs   & 2 s   & 100           \\
  newton   & 60 s  & 100           \\
@@ -101,7 +101,7 @@ These algorihms were tested on random $100 \times 100$ matrices, for $err\_max =
 
 \medskip
 
-For all the algorithms, the convergence seem to be linear. This is expected for the modified Dysktra's projection and the ADMMs. Quasi-Newton methods converge superlinearly when the functional is smooth and a Wolfe line search is performed, for instance. The algorithms 'bfgs', 'l\_bfgs' may converge only linearly because the gradient of the functional is only semismooth. It is surprising for the Newton's method to have only a linear convergence, as it is proved to be quadratically convergent. The quadratic convergence may be observed for other ranges of parameters; Qi, Sun test their algorithm in higher dimension ($1000 \times 1000$) and for lower $err\_max$. 
+For all the algorithms, the convergence seem to be linear, \emph{cf.} \texttt{performances.ipynb}. This is expected for the modified Dysktra's projection and the ADMMs. Quasi-Newton methods converge superlinearly when the functional is smooth and a Wolfe line search is performed, for instance. The algorithms 'bfgs', 'l\_bfgs' may converge only linearly because the gradient of the functional is only semismooth. It is surprising for the Newton's method to have only a linear convergence, as it is proved to be quadratically convergent. The quadratic convergence may be observed for other ranges of parameters; Qi, Sun test their algorithm in higher dimension ($1000 \times 1000$) and for lower $err\_max$. I could not check this result du to low computational power.
 
 \medskip
 

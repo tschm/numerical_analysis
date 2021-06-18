@@ -5,4 +5,4 @@ __pycache__
 *.aux
 *.ipynb
 #*#
-!nearest_correlation_matrix/tests/*.ipynb
+!tests/*.ipynb

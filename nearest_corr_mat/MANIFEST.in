@@ -1,4 +1,5 @@
 include README.tex
 include README.pdf
-include src/near_corr_mat/tests/performances.ipynb
-include src/near_corr_mat/tests/performances_low_rank.ipynb
+graft src
+include tests/performances*.ipynb
+include tests/*.py

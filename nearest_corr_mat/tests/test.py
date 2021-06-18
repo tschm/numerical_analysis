@@ -1,7 +1,7 @@
 from itertools import combinations
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
-from near_corr_mat.functions import *
+from nearcorrmat.functions import *
 
 
 def test_is_def_pos(mat=None, **kwargs):
@@ -199,5 +199,4 @@ def test_proj_newton():
     mat = build_newton_mat(gen_sym_psd(100, 10))
     test_is_def_pos(mat, atol=1e-15)
     # the convergence of proj_newton,
-    # which is a gradient descent for the gradient of the dual objective,
     # tests the quality of the direction found by inverting this matrix

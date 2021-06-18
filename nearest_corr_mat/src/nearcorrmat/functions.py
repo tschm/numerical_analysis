@@ -2,14 +2,11 @@ from itertools import product
 from functools import reduce
 import numpy as np
 from numpy.linalg import norm, eig, solve
-from scipy.sparse import diags
 
 
 DIM = 10
-diag_1 = [-1] * (DIM - 1)
-diagonals = [diag_1, [2] * DIM, diag_1]
-laplace = diags(diagonals, [-1, 0, 1]).toarray()
-
+d_1 = [-1] * (DIM - 1)
+laplace = np.diag(d_1, -1) + np.diag([2] * DIM) + np.diag(d_1, 1)
 
 def gen_sym_psd(int_n, seed=None, int_p=None):
     '''Generates a random symmetric positive semidefinite array.
