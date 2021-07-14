@@ -37,6 +37,27 @@ def proj_simplex(vec, rad):
     proj = np.maximum(vec - cummeans[rho], 0)
     return proj
 
+def proj_simplex_lin_time(vec, rad):
+    "https://stanford.edu/~jduchi/projects/DuchiShSiCh08.pdf"
+    indexes = list(range(len(vec)))
+    som = 0
+    rho = 0
+    while indexes:
+        index = np.random.choice(indexes)
+        val = vec[index]
+        right = [ind for ind in indexes if vec[ind] >= val]
+        left = [ind for ind in indexes if vec[ind] < val]
+        inc_som = som + sum(vec[ind] for ind in right)
+        inc_rho = rho + len(right)
+        if inc_som - inc_rho * val < rad:
+            som = inc_som
+            rho = inc_rho
+            indexes = left
+        else:
+            right.remove(index)
+            indexes = right
+    return np.maximum(vec - (som - rad) / rho, 0)
+
 def proj_l1_ball(vec, rad=1, num=None):
     abs_vec = np.abs(vec)
     triv = (np.sum(abs_vec) <= rad)
@@ -291,7 +312,7 @@ def bisection_increasing(func, point, lbd, ubd, tol=1e-9, ite_max=None):
             (mid, ubd) if y_mid < 0 else (lbd, mid) if y_mid > 0
             else (mid, mid))
         ite += 1
-    return mid
+    return mid, ite
 
 def prox_lp_1d_bisection(point, expo, cst, lam, point_0=None):
     '''Proximal operator of the following function at point:
