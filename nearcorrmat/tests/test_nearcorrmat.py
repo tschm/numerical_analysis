@@ -1,7 +1,11 @@
+from nearcorrmat import __version__
 from itertools import combinations
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 from nearcorrmat.functions import *
+
+def test_version():
+    assert __version__ == '0.1.0'
 
 
 def test_is_def_pos(mat=None, **kwargs):

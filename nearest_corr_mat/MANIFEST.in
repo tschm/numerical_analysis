@@ -1,5 +1,0 @@
-include README.tex
-include README.pdf
-graft src
-include tests/performances*.ipynb
-include tests/*.py

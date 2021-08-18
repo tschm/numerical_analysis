@@ -16,7 +16,7 @@ The first two algorithms are based on the primal problem, while the last three a
 
 1. The algorithm 'grad' is based on [Higham, 2002](https://www.maths.manchester.ac.uk/~higham/narep/narep369.pdf).
 This algorithm is a modified Dykstra's projection algorithm.
-2. The algorithms 'admm_v0' and 'admm_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections are performed. The two algorithms are different but have similar performances. To the best of my knowleddge, the second one is an original application of the ADMM to this problem.
+2. The algorithms 'admm_v0' and 'admm_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections are performed. The two algorithms are different but have similar performances. To the best of my knowledge, this is an original application of the ADMM.
 3. The algorithm 'bfgs' is the BFGS algorithm applied to the dual problem, as developped in [Malick, 2004](https://hal.inria.fr/inria-00072409v2/document). The implementations are based on [BGLS textbook](https://link.springer.com/book/10.1007/978-3-540-35447-5).
 4. The algorithm 'l_bfgs' is the limited BFGS algorithm applied to the dual problem, as suggested in Malick. The implementations are based on the same book.
 5. The algorithm 'newton' is a Newton's method for the dual problem, developped in [Qi, Sun, 2006](http://www.personal.soton.ac.uk/hdqi/REPORTS/simax_06.pdf).

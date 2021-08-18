@@ -218,7 +218,7 @@ def proj_grad(mat, err_max, ite_max):
 def update_admm(mat, version, rho, prim_2, dual):
     '''Update for the primal variables for `proj_admm`.
 
-    This is an original algorithm for this problem.
+    This is an original application of the ADMM to this problem.
 
     Parameters
     ----------

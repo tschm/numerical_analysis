@@ -58,7 +58,7 @@ The dual problem is convex, unconstrained, and $\nabla \theta$ is strongly semis
 
 \medskip
 
-The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically. The firsst algorithm is a gradient descent for this dual problem, the third and fourth algorithms are quasi-Newton methods, while the fifth is a Newton method.
+The more use of the regularity of these functionals is performed, the more efficient the algorithm, theoretically. The first algorithm is a gradient descent for this dual problem, the third and fourth algorithms are quasi-Newton methods, while the fifth is a Newton method.
 
 \medskip
 
@@ -75,7 +75,7 @@ Five algorithms are implemented in the main function \texttt{nearest\_corr}. The
 \begin{enumerate}
 \item The algorithm 'grad' is based on \href{https://www.maths.manchester.ac.uk/~higham/narep/narep369.pdf}{Higham, 2002}.
 This algorithm is a modified Dykstra's projection algorithm, adapted to find a point in the intersection of an affine subspace and convex subset. As noted in \href{https://hal.inria.fr/inria-00072409v2/document}{Malick, 2004}, this algorithm is exactly a gradient descent for the dual problem. This point is checked in the tests, \emph{cf.} \texttt{test.py}.
-\item The algorithms 'admm\_v0' and 'admm\_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections on $S_n^+$ and $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ are performed. The two algorithms are different but have similar performances. To the best of my knowledge, this is an original application of the ADMM to this problem.
+\item The algorithms 'admm\_v0' and 'admm\_v1' are ADMMs. Two versions are implemented, depending on the order in which the projections on $S_n^+$ and $\{X\in S_n \mid \mathrm{diag}(X) = 1\}$ are performed. The two algorithms are different but have similar performances. To the best of my knowledge, the application of the ADMM to this problem is original.
 \item The algorithm 'bfgs' is the BFGS algorithm applied to the convex, differentiable, unconstrained dual problem, \emph{cf.} Malick. The implementations are based on \href{https://link.springer.com/book/10.1007/978-3-540-35447-5}{BGLS textbook}.
 \item The algorithm 'l\_bfgs' is the limited BFGS algorithm applied to the dual problem, as suggested in Malick. The implementations are based on the same book.
 \item The algorithm 'newton' is a Newton's method for the dual problem. It relies on an explicit computation of an element of the Clarke Jacobian of $\nabla \theta$. It has been developed in \href{http://www.personal.soton.ac.uk/hdqi/REPORTS/simax_06.pdf}{Qi, Sun, 2006}.
