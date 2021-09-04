@@ -5,10 +5,6 @@ The package `nearcorrmat` provides fast computations of the nearest correlation 
 A correlation matrix is a real symmetric positive semidefinite matrix with unit diagonal.
 The problem is to find the closest correlation matrix to a given positive semidefinite matrix, for the Frobenius norm. Five algorithms are implemented in the main function *nearest_corr*. Although the algorithms were not published recently, I am not aware of any freely accessible implementation, apart from the Python package `Statsmodels` providing the first algorithm.
 
-# Source Code
-
-The source code is available on `https://github.com/bourgeron/numerical_analysis/tree/master/nearest_corr_mat`
-
 # Algorithms
 
 The first two algorithms are based on the primal problem, while the last three are directly based on the dual problem.
