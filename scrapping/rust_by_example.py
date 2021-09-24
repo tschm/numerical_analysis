@@ -7,20 +7,22 @@ BASE_URL = 'https://doc.rust-lang.org/rust-by-example/'
 text = BeautifulSoup(get(BASE_URL + 'index.html').text, features='html.parser')
 links = [link.get('href') for link in text.find_all('a', href=True)][1:192]
 
-# put the links in different groups
+# split the links into different groups
 old = 'hello'
-groups = {'00_hello': []}
 count = 0
+name = str(count).zfill(2) + '_' + old
+groups = {name: []}
 for link in links:
     beginning = link[:-5].split('/')[0]
     if beginning == old:
-        groups[str(count).zfill(2) + '_' + old].append(link)
+        groups[name].append(link)
     else:
-        count += 1
         old = beginning
-        groups[str(count).zfill(2) + '_' + old] = [link]
+        count += 1
+        name = str(count).zfill(2) + '_' + old
+        groups[name] = [link]
 
-# load the rust snippets in each html page and compile them
+# load the Rust snippets in each html page and compile them
 for group, links in groups.items():
     mkdir(group)
     chdir(group)
@@ -28,13 +30,11 @@ for group, links in groups.items():
         content = BeautifulSoup(get(BASE_URL + link).text, features='html.parser')
         snippets = content.find_all('code', {'class': "language-rust editable"})
         for num, snippet in enumerate(snippets):
-            name = '_'.join(link.split('/'))[:-5]
-            full_name = name + '_' + str(num) + '.rs'
+            full_name = '_'.join(link.split('/'))[:-5] + '_' + str(num) + '.rs'
             file = open(full_name, 'w')
             file.write(snippet.text)
             file.close()
-            cmds = ['rustc', full_name]
-            proc = Popen(cmds)
+            proc = Popen(['rustc', full_name])
             proc.communicate()
             retcode = proc.returncode
             if retcode != 0:
