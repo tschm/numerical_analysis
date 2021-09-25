@@ -9,14 +9,12 @@ text = BeautifulSoup(get(BASE_URL + 'index.html').text, features='html.parser')
 links = [link.get('href') for link in text.find_all('a', href=True)][1:192]
 
 # put the links in different groups
-old = None
+group = None
 count = 0
 groups = defaultdict(list)
 for link in links:
-    if (beginning := link[:-5].split('/')[0]) != old:
-        old = beginning
-        count += 1
-    groups[str(count).zfill(2) + '_' + old].append(link)
+    count += 1 if (group := link[:-5].split('/')[0]) != group else 0
+    groups[str(count).zfill(2) + '_' + group].append(link)
 
 # load the rust snippets in each html page and compile them
 for group, links in groups.items():
@@ -30,8 +28,7 @@ for group, links in groups.items():
             file = open(full_name, 'w')
             file.write(snippet.text)
             file.close()
-            proc = Popen(['rustc', full_name])
-            proc.communicate()
+            (proc := Popen(['rustc', full_name])).communicate()
             if (retcode := proc.returncode) != 0:
                 print(f'{full_name}: error {retcode} while compiling.')
     chdir('../')
