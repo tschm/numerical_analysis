@@ -8,15 +8,15 @@ BASE_URL = 'https://doc.rust-lang.org/rust-by-example/'
 text = BeautifulSoup(get(BASE_URL + 'index.html').text, features='html.parser')
 links = [link.get('href') for link in text.find_all('a', href=True)][1:192]
 
-# put the links in different groups
+# split the links into different groups
 group = None
 count = 0
 groups = defaultdict(list)
 for link in links:
-    count += 1 if (group := link[:-5].split('/')[0]) != group else 0
-    groups[str(count).zfill(2) + '_' + group].append(link)
+    count += 1 if group != (group := link[:-5].split('/')[0]) else 0
+    groups[f'{count:02}_{group}'].append(link)
 
-# load the rust snippets in each html page and compile them
+# load the Rust snippets in each html page and compile them
 for group, links in groups.items():
     mkdir(group)
     chdir(group)
