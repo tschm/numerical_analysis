@@ -39,7 +39,7 @@ def parse_line(line, n_cols):
     if len(seps) > 1:
         parsed_data = clean_text_line(seps)
         pos = 1 if len(seps) == n_cols else 0
-        link = link_.get('href') if (link_ := seps[pos].find('a')) is not None else ''
+        link = link_.get('href') if (link_ := seps[pos].find('a')) is not None else None
         parsed_data.insert(pos + 1, link)
         if pos == 0:
             parsed_data.insert(0, None)
