@@ -255,7 +255,7 @@ def update_admm(mat, version, rho, prim_2, dual):
 def update_rho_admm(rho, dual, err_prim, err_dual, tau, ratio_max):
     '''Update for the penalization parameter in `proj_admm`.
 
-    This method was first published in He, B.S., Yang, H. & Wang, S.L.
+    This heuristic was first published in He, B.S., Yang, H. & Wang, S.L.
     Alternating Direction Method with Self-Adaptive Penalty Parameters
     for Monotone Variational Inequalities.
     Journal of Optimization Theory and Applications 106, 337–356 (2000).
