@@ -85,15 +85,6 @@ def select_line(frame, keyword):
             string = clean_string(content.iloc[0, 1])
     return string
 
-def select_fields(frame):
-    series = pd.Series({'Title': None, 'Director': None, 'Year': None})
-    if frame is not None and not frame.empty:
-        series = pd.Series({
-            'Title': frame.columns[1],
-            'Director': select_line(frame, 'direct'),
-            'Year': select_line(frame, 'date')})
-    return series
-
 def read_infobox(wiki_url):
     infos = None
     if bool(wiki_url) and not isnan(wiki_url) and (wiki_url := str(wiki_url)).startswith('http'):
@@ -110,19 +101,9 @@ def read_infobox(wiki_url):
             print(f'The page {wiki_url} contains no infobox.')
     return infos
 
-def read_infoboxes(wiki_urls, fields):
-    infos = [select_fields(read_infobox(wiki_url)) for wiki_url in wiki_urls]
-    return pd.concat(infos, axis=1).loc[fields, :].T.reset_index(drop=True)
-
 def reorder_list(sublst, lst):
     assert set(sublst) <= set(lst)  # quid repetitions?
     return sublst + [col for col in lst if col not in sublst]
-
-def lastname_last_director(strg):
-    res = None
-    if strg is not None and (wrds := [w for w in strg.split() if w[0].isupper()]):
-        res = wrds[-1]
-    return res
 
 def carefully_replace_column_name(cols, old_col, new_col):
     if old_col in cols and new_col != old_col:
