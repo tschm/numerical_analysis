@@ -1,7 +1,6 @@
 from re import sub  #, search
 from requests import get
 from bs4 import BeautifulSoup
-from numpy import isnan
 import pandas as pd
 
 def clean_string(string):
@@ -79,15 +78,18 @@ def parse_tables(url, n_tables):
 
 def select_line(frame, keyword):
     string = None
-    if frame is not None:
-        content = frame[frame.iloc[:, 0].str.lower().str.contains(keyword)]
+    if frame is not None and isinstance(keyword, str):
+        content = frame[frame.iloc[:, 0].str.lower().str.contains(keyword.lower())]
         if not content.empty:
             string = clean_string(content.iloc[0, 1])
     return string
 
 def read_infobox(wiki_url):
     infos = None
-    if bool(wiki_url) and not isnan(wiki_url) and (wiki_url := str(wiki_url)).startswith('http'):
+    if all((
+        bool(wiki_url),
+        not wiki_url is None,
+        (wiki_url := str(wiki_url)).startswith('http'))):
         print(f'Checking the page: {wiki_url}')
         html = BeautifulSoup(get(wiki_url).text, features='html.parser')
         tables = html.find_all('table')
@@ -112,3 +114,15 @@ def carefully_replace_column_name(cols, old_col, new_col):
             cols = cols.str.replace(new_col, new_col.upper())
         cols = cols.str.replace(old_col, new_col)
     return cols
+
+# example
+URL = 'https://en.wikipedia.org/wiki/List_of_circulating_currencies'
+currencies = parse_tables(URL, 0)
+currencies['Pegs'] = (
+    currencies['Link']
+    .apply(lambda url: select_line(read_infobox(url), 'peg')))
+
+pegs = currencies.dropna(subset=['Pegs']).loc[:, list(currencies)[:2] + ['ISO code', 'Pegs']]
+print(pegs)
+print(set(pegs['ISO code'].unique()))
+print(dict(currencies.groupby('ISO code')['State or territory'].apply(set)))
