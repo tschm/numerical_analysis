@@ -85,7 +85,9 @@ def optimal_ou_threshold(**kwargs):
 
 def ou_fit(path):
     reg = LinearRegression()
-    reg.fit(path[:-1].reshape(-1, 1), path[1:])
+    xxx = path[:-1].reshape(-1, 1)
+    yyy = path[1:]
+    reg.fit(xxx, yyy)
     alpha = reg.intercept_
     beta = reg.coef_[0]
     mean = alpha / (1 - beta)
@@ -93,7 +95,7 @@ def ou_fit(path):
     d_t = 1
     std = res.std(ddof=1) * d_t ** 0.5
     theta = (1 - beta) / d_t
-    return {'theta': theta, 'mean': mean, 'std': std}
+    return {'theta': theta, 'mean': mean, 'std': std, 'score': reg.score(xxx, yyy)}
 
 
 def bootstrap(sample, size, seed=SEED):
