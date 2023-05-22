@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "poetry"
+version = "0.1.0"
+description = "scraping"
+authors = ["Thibault Bourgeron <thibault.bourgeron@protonmail.com>"]
+
+[tool.poetry.dependencies]
+python = "3.10.6"
+polars = "0.17.8"
+loguru = "0.7.0"
+beautifulsoup4 = "4.12.2"
+pandas = "2.0.1"
+requests = "2.25.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
