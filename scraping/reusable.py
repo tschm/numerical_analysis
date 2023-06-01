@@ -47,7 +47,8 @@ def any_none(fin_iter):
 
 def get_col_unique(filmo, col):
     uniques = filmo.select(col).to_series().unique()
-    return uniques[0], uniques.shape == (1,) and uniques.null_count() == 0
+    bol = uniques.shape == (1,) and uniques.null_count() == 0
+    return (None if uniques.is_empty() else uniques[0], bol)
 
 
 def first_argm(lst_tpls, how):
@@ -60,24 +61,27 @@ def metric_lst(ref, lst, metric):
     arg = first_argm(enumerate(dists), min)
     return ref, lst[arg], dists[arg]
 
+def metric_dic(dic, lst_name, records_name, metric):
+    ref, arg_min, dist_min = metric_lst(dic[lst_name], dic[records_name], metric)
+    dtypes = [
+        [lst_name, pl.Utf8],
+        [records_name, pl.Utf8],
+        [metric.__name__, pl.UInt16],
+    ]
+    return (
+        pl.DataFrame({lst_name: ref, records_name: arg_min, metric.__name__: dist_min})
+        .with_columns([pl.col(col).cast(dtype) for col, dtype in dtypes])
+    )
 
-def metric_lsts(lst_dicts, lst_name, records_name, min_metric, processes=None):
+def metric_lst_dicts(lst_dicts, min_metric, processes=None):
     if processes == 1:
         metrics = [min_metric(dic) for dic in lst_dicts]
     else:
         with Pool() as pool:
             metrics = list(pool.imap_unordered(min_metric, lst_dicts))
-    dtypes = [
-        [lst_name, pl.Utf8],
-        [records_name, pl.Utf8],
-        [min_metric.__name__, pl.UInt16],
-    ]
-    schema, _ = zip(*dtypes)
-    return (
-        pl.DataFrame(metrics, schema=schema, orient='row')
-        .select([pl.col(col).cast(dtype) for col, dtype in dtypes])
-        .sort(min_metric.__name__, descending=True)
-    )
+    metrics = pl.concat(metrics)
+    metric_name = metrics.select(pl.col(pl.UInt16)).columns[0]
+    return metrics.sort(metric_name, descending=True)
 
 
 def log(logger, msg, lvl='info'):
