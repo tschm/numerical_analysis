@@ -1,5 +1,4 @@
-from pathlib import Path
-from collections import Counter
+from collections import defaultdict
 from itertools import islice, combinations
 from scipy.cluster.hierarchy import fcluster, leaves_list, optimal_leaf_ordering
 from scipy.stats import chi2_contingency
@@ -8,86 +7,49 @@ import pandas as pd
 import polars as pl
 import matplotlib.pyplot as plt
 from fastcluster import linkage
-import yfinance as yf
-
-
-# load data from yahoo finance
-
-def get_history_one_ticker(ticker):
-    return pl.DataFrame(
-        yf.Ticker(ticker)
-        .history(period='max')
-        .reset_index()
-        .assign(Ticker=ticker)
-    )
-
-
-def load_histories():
-    parquets = (ele.stem for ele in Path('.').glob('*.parquet'))
-    if 'histories' in parquets:
-        histories = pl.read_parquet('histories.parquet')
-    else:
-        tickers = [
-            'NIO',
-            'DWAC',
-            'EDU',
-            'GME',
-            'AAPL',
-            'TSLA',
-            'AMC',
-            'PG',
-            'F',
-            'SNAP',
-            'AMZN',
-            'DIS',
-            'MSFT',
-            'GE',
-            'RIVN',
-            'BROS',
-            'GOOG',
-            'GOOGL',
-            'CCL',
-            'AMD',
-            'NVDA'
-        ]
-        histories = pl.concat([get_history_one_ticker(ticker) for ticker in tickers])
-        histories.write_parquet('histories.parquet')
-    return histories
+from data import load_histories
 
 
 # hierarchical clustering of a similarity matrix
-# next three functions: https://gmarti.gitlab.io/qfin/2020/03/22/herc-part-i-implementation.html
+# next functions: https://gmarti.gitlab.io/ml/2022/09/17/hierarchical-pca-crypto-clustering.html
 
-def sort_corr(corr_df):
-    names = np.array(list(corr_df))
-    corr = corr_df.values
-    dissimilarities = 1 - corr
-    condensed = dissimilarities[np.triu_indices(len(corr_df), k=1)]
-    link = linkage(condensed, method='ward')
-    perm = leaves_list(optimal_leaf_ordering(link, condensed))
-    sorted_corr_df = pd.DataFrame(
-        index=names[perm], columns=names[perm], data=corr[perm, :][:, perm])
-    return link, perm, sorted_corr_df
+def get_linkage(corr_pd_df):
+    dissimilarities = 1. - corr_pd_df.to_numpy()
+    condensed = dissimilarities[np.triu_indices(len(corr_pd_df), k=1)]
+    return linkage(condensed, method='ward'), condensed
 
+def sort_corr(corr_pd_df):
+    links, condensed = get_linkage(corr_pd_df)
+    perm = leaves_list(optimal_leaf_ordering(links, condensed))
+    cols = corr_pd_df.columns
+    corr_vals = corr_pd_df.to_numpy()
+    sorted_corr_pd_df = pd.DataFrame(
+        index=cols[perm], columns=cols[perm], data=corr_vals[perm, :][:, perm])
+    return sorted_corr_pd_df
 
-def cut_linkage(link, n_clusters):
-    c_inds = fcluster(link, n_clusters, criterion='maxclust')
-    return sorted(Counter(c_inds).items(), key=lambda x: x[0])
+def cut_linkage(links, n_clusters):
+    inds = fcluster(links, n_clusters, criterion='maxclust')
+    clusters = defaultdict(list)
+    for ind, n_cluster in enumerate(inds):
+        clusters[n_cluster].append(ind)
+    return sorted(clusters.values(), key=min)
 
-
-def plot_clusters(sorted_corr_df, clusters_sizes):
+def plot_clusters(sorted_corr_df, clusters):
+    clusters_sizes = [len(clu) for clu in clusters]
     plt.figure(figsize=(8, 8))
     plt.pcolormesh(sorted_corr_df)
-    sizes = np.cumsum([0] + [y for _, y in clusters_sizes])
-    dim = len(sorted_corr_df)
+    sizes = np.cumsum([0] + clusters_sizes)
+    assert (dim := len(sorted_corr_df)) == sum(clusters_sizes)
     for left, right in zip(sizes, sizes[1:]):
         plt.axvline(x=left, ymin=left / dim, ymax=right / dim, color='r')
         plt.axvline(x=right, ymin=left / dim, ymax=right / dim, color='r')
         plt.axhline(y=left, xmin=left / dim, xmax=right / dim, color='r')
         plt.axhline(y=right, xmin=left / dim, xmax=right / dim, color='r')
     plt.show()
-    cols = iter(list(sorted_corr_df))
-    return [list(islice(cols, n_eles)) for _, n_eles in clusters_sizes]
+
+def slice_lst(lst, sizes):
+    ite = iter(lst)
+    return [list(islice(ite, size)) for size in sizes]
 
 
 # example of clustering wrt co-occurrences of discrete variables
@@ -115,20 +77,24 @@ def p_vals_chi2_categs_indep(categs):
 if __name__ == "__main__":
     # 1st example
     keys = ['Date', 'Ticker']
-    returns = (
+    corr_df = (
         load_histories()
         .sort(keys)
         .select([pl.col(keys), pl.col('Close').pct_change().over(keys[1])])
         .to_pandas()
         .pivot(index=keys[0], columns=keys[1], values='Close')
+        .corr(method='spearman')
     )
-    lnkg, _, sorted_corr = sort_corr(returns.corr())
+    sorted_corr = sort_corr(corr_df)
+    lnkg = get_linkage(sorted_corr)[0]
 
-    clusters = plot_clusters(sorted_corr, cut_linkage(lnkg, 6))
-    print(clusters)
+    clusts = cut_linkage(lnkg, 6)
+    print(slice_lst(list(sorted_corr), [len(clu) for clu in clusts]))
+    plot_clusters(sorted_corr, clusts)
 
-    clusters = plot_clusters(sorted_corr, cut_linkage(lnkg, 8))
-    print(clusters)
+    clusts = cut_linkage(lnkg, 8)
+    print(slice_lst(list(sorted_corr), [len(clu) for clu in clusts]))
+    plot_clusters(sorted_corr, clusts)
 
     # 2nd example
     STR = 'abcdefghijklmnopqrstuvwxyz'
@@ -137,6 +103,9 @@ if __name__ == "__main__":
         np.random.choice(a=list(chars), size=100)  # TODO: set seed
         for chars in splits]).T
     p_vals_ = p_vals_chi2_categs_indep(categs_)
-    lnkg, _, sorted_p_vals_ = sort_corr(1 - p_vals_)
-    clusters = plot_clusters(sorted_p_vals_, cut_linkage(lnkg, 3))
-    print(clusters)
+
+    sorted_corr = sort_corr(1. - p_vals_)
+    lnkg, _ = get_linkage(sorted_corr)
+    clusts = cut_linkage(lnkg, 3)
+    print(slice_lst(list(sorted_corr), [len(clu) for clu in clusts]))
+    plot_clusters(sorted_corr, clusts)
